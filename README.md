@@ -18,14 +18,14 @@
 已经装有结合版，也可以在脚本编辑器中把代码内容换为这一行，保留原有按钮设置：
 
 ```js
-import 'https://cdn.jsdelivr.net/gh/gqing714-lang/st-attitude-state@main/index.js';
+await import('https://cdn.jsdelivr.net/gh/gqing714-lang/st-attitude-state@main/index.js?reload=' + Date.now());
 ```
 
 入口会用酒馆助手的 `appendInexistentScriptButtons` 补齐缺少的两个按钮，已有按钮的显示设置会保留。推荐导入 `install.json`，它还包含加载失败时的中文提示。
 
 ## 更新
 
-维护者更新仓库的 `main/index.js` 后，使用者在**刷新酒馆页面或重新启用脚本时**读取更新后的代码。正在运行的脚本会继续使用已加载版本，更新时也保留原有聊天记录。
+维护者更新仓库的 `main/index.js` 后，使用者在**刷新酒馆页面或重新启用脚本时**检查更新。加载器每次带上新的时间参数，避开浏览器对旧文件的长期缓存。正在运行的脚本会继续使用已加载版本，更新时也保留原有聊天记录。
 
 链接指向 `main` 分支。根据 [jsDelivr 缓存说明](https://github.com/jsdelivr/jsdelivr#caching)，分支链接存在缓存，更新可能延迟（文档标注 12 小时）；上传完成并不代表所有人立即获得新版本。
 
