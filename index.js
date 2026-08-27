@@ -899,11 +899,11 @@
     const nextTargetSelect = makeElement('select', 'th-attitude-target-select');
     nextTargetSelect.setAttribute('aria-label', '当前态度对象');
 
-    const nextActiveToggle = makeElement('button', 'th-attitude-mini-button th-attitude-active-toggle', '注入');
+    const nextActiveToggle = makeElement('button', 'th-attitude-mini-button th-attitude-active-toggle', 'AI读取');
     nextActiveToggle.type = 'button';
     nextActiveToggle.dataset.active = 'true';
     nextActiveToggle.setAttribute('aria-pressed', 'true');
-    nextActiveToggle.setAttribute('aria-label', '切换当前角色是否随下一条消息注入');
+    nextActiveToggle.setAttribute('aria-label', '切换是否让AI读取当前角色的态度记录');
 
     const nextAddTargetButton = makeElement('button', 'th-attitude-mini-button th-attitude-add', '＋');
     nextAddTargetButton.type = 'button';
@@ -1282,7 +1282,13 @@
     remarkInput.value = entry.remark;
     activeToggle.dataset.active = String(entry.active);
     activeToggle.setAttribute('aria-pressed', String(entry.active));
-    activeToggle.title = entry.active ? '当前角色会随下一条消息注入' : '当前角色已暂停注入';
+    activeToggle.textContent = entry.active ? 'AI读取' : '仅保存';
+    activeToggle.title = entry.active
+      ? '开启：AI会读取该角色的态度记录'
+      : '关闭：记录照常保存，AI不会读取';
+    activeToggle.setAttribute('aria-label', entry.active
+      ? '当前为AI读取；点击后改为仅保存'
+      : '当前为仅保存；点击后允许AI读取');
     staminaNumber.value = String(state.userStatus.stamina);
     moodNumber.value = String(state.userStatus.mood);
     setRangeProgress(staminaRange, state.userStatus.stamina);
@@ -1787,7 +1793,8 @@
       if (!entry) return;
       entry.active = !entry.active;
       renderState();
-      persistState({ force: true });
+      const saved = persistState({ force: true, silent: true });
+      setStatus(saved ? (entry.active ? 'AI会读取' : 'AI不读取') : '保存失败', saved ? 'saved' : 'error');
     }
 
     function handleAddTarget(event) {
