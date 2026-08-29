@@ -1,4 +1,4 @@
-// 态度与状态 · 结合版 v8.1 · 仓库入口
+// 态度与状态 · v8.2 · 仓库入口
 (function () {
   'use strict';
 
@@ -100,6 +100,7 @@
   let shortcutSubscription = null;
   let switchSubscription = null;
   let uiCleanup = null;
+  let cancelActiveDrag = null;
 
   function getApi(name) {
     try {
@@ -298,7 +299,8 @@
   --th-attitude-border: var(--SmartThemeBorderColor, rgba(255,255,255,.22));
   --th-attitude-control: color-mix(in srgb, var(--th-attitude-surface) 86%, var(--th-attitude-ink) 14%);
   --th-attitude-control-active: color-mix(in srgb, var(--th-attitude-surface) 78%, var(--th-attitude-ink) 22%);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  font-family: inherit !important;
+  translate: none !important;
 }
 #${ORB_ID} {
   appearance: none !important;
@@ -319,8 +321,6 @@
   background: var(--th-attitude-surface) !important;
   box-shadow: 0 3px 8px rgba(0,0,0,.15) !important;
   color: var(--th-attitude-ink) !important;
-  backdrop-filter: blur(var(--SmartThemeBlurStrength, 10px)) !important;
-  -webkit-backdrop-filter: blur(var(--SmartThemeBlurStrength, 10px)) !important;
   z-index: 2147483646 !important;
   visibility: visible !important;
   opacity: 1 !important;
@@ -360,7 +360,6 @@
   visibility: visible !important;
   opacity: 1 !important;
   pointer-events: auto !important;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
 }
 #${ROOT_ID}[hidden] { display: none !important; }
 #${ROOT_ID}, #${ROOT_ID} * { box-sizing: border-box !important; }
@@ -378,8 +377,6 @@
   background: var(--th-attitude-surface) !important;
   box-shadow: 0 3px 8px rgba(0,0,0,.15) !important;
   color: var(--th-attitude-ink) !important;
-  backdrop-filter: blur(14px) !important;
-  -webkit-backdrop-filter: blur(14px) !important;
   pointer-events: auto !important;
   overscroll-behavior: contain !important;
 }
@@ -411,20 +408,17 @@
   flex: 0 0 28px !important;
   width: 28px !important;
   height: 30px !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-height: 30px !important;
   margin: 0 !important;
   padding: 0 !important;
-  border: 0 !important;
-  border-radius: 7px !important;
-  background: transparent !important;
-  color: inherit !important;
-  font: inherit !important;
   font-size: 21px !important;
   line-height: 1 !important;
   cursor: pointer !important;
   opacity: .72 !important;
   -webkit-tap-highlight-color: transparent !important;
 }
-#${ROOT_ID} .th-attitude-close:active { background: var(--th-attitude-control) !important; }
 #${ROOT_ID}[data-display-mode="orb"] .th-attitude-grip,
 #${ROOT_ID}[data-display-mode="orb"] .th-attitude-close { display: none !important; }
 #${ROOT_ID}[data-display-mode="orb"] .th-attitude-head {
@@ -444,33 +438,30 @@
 #${ROOT_ID} .th-attitude-tabs {
   display: flex !important;
   align-items: center !important;
-  gap: 2px !important;
-  padding: 2px !important;
-  border: 1px solid var(--th-attitude-border) !important;
-  border-radius: 9px !important;
-  background: var(--th-attitude-control) !important;
+  gap: 4px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
 }
 #${ROOT_ID} .th-attitude-tab {
   appearance: none !important;
   -webkit-appearance: none !important;
+  width: 42px !important;
   min-width: 42px !important;
+  min-height: 0 !important;
   height: 25px !important;
+  max-height: 25px !important;
   margin: 0 !important;
-  padding: 0 8px !important;
-  border: 0 !important;
-  border-radius: 6px !important;
-  background: transparent !important;
-  color: inherit !important;
-  font: inherit !important;
+  padding: 0 5px !important;
   font-size: 12px !important;
   line-height: 1 !important;
-  font-weight: 650 !important;
   opacity: .58 !important;
   cursor: pointer !important;
   -webkit-tap-highlight-color: transparent !important;
 }
 #${ROOT_ID} .th-attitude-tab[aria-selected="true"] {
-  background: var(--th-attitude-control-active) !important;
   opacity: .96 !important;
 }
 #${ROOT_ID} .th-attitude-status {
@@ -509,23 +500,37 @@
   -webkit-appearance: none !important;
   height: 32px !important;
   min-width: 0 !important;
+  min-height: 0 !important;
+  max-height: 32px !important;
   margin: 0 !important;
+  font-size: 12px !important;
+}
+#${ROOT_ID} .th-attitude-target-name {
   border: 1px solid var(--th-attitude-border) !important;
   border-radius: 8px !important;
   outline: none !important;
   background: var(--th-attitude-control) !important;
   color: inherit !important;
-  font: inherit !important;
-  font-size: 12px !important;
+  font-family: inherit !important;
 }
 #${ROOT_ID} .th-attitude-target-select {
   width: 100% !important;
-  padding: 0 26px 0 9px !important;
+  padding: 0 22px 0 8px !important;
   text-overflow: ellipsis !important;
-  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%) !important;
-  background-position: calc(100% - 12px) 14px, calc(100% - 8px) 14px !important;
-  background-size: 4px 4px, 4px 4px !important;
-  background-repeat: no-repeat !important;
+  cursor: pointer !important;
+}
+#${ROOT_ID} .th-attitude-select-wrap {
+  position: relative !important;
+  min-width: 0 !important;
+}
+#${ROOT_ID} .th-attitude-select-arrow {
+  position: absolute !important;
+  top: 50% !important;
+  right: 8px !important;
+  transform: translateY(-50%) !important;
+  font-size: 10px !important;
+  line-height: 1 !important;
+  pointer-events: none !important;
 }
 #${ROOT_ID} .th-attitude-target-name {
   width: 100% !important;
@@ -547,8 +552,6 @@
   opacity: .52 !important;
 }
 #${ROOT_ID} .th-attitude-active-toggle[data-active="true"] {
-  border-color: color-mix(in srgb, var(--th-attitude-ink) 48%, transparent) !important;
-  background: var(--th-attitude-control-active) !important;
   opacity: .92 !important;
 }
 #${ROOT_ID} .th-attitude-add,
@@ -573,17 +576,14 @@
   appearance: none !important;
   width: 100% !important;
   height: 30px !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-height: 30px !important;
   margin: 0 !important;
-  padding: 0 9px !important;
-  border: 0 !important;
-  border-radius: 7px !important;
-  background: transparent !important;
-  color: inherit !important;
-  font: inherit !important;
+  padding: 0 5px !important;
   font-size: 12px !important;
   text-align: left !important;
 }
-#${ROOT_ID} .th-attitude-target-menu button:active { background: var(--th-attitude-control-active) !important; }
 #${ROOT_ID} .th-attitude-field {
   display: grid !important;
   grid-template-columns: 42px minmax(0, 1fr) !important;
@@ -597,25 +597,18 @@
   font-weight: 650 !important;
   opacity: .88 !important;
 }
+/* 输入框通过 text_pole 沿用当前美化，只固定小面板所需的尺寸。 */
 #${ROOT_ID} .th-attitude-input {
   appearance: none !important;
   -webkit-appearance: none !important;
   width: 100% !important;
   min-width: 0 !important;
   height: 32px !important;
+  min-height: 0 !important;
+  max-height: 32px !important;
   margin: 0 !important;
-  padding: 0 9px !important;
-  border: 1px solid var(--th-attitude-border) !important;
-  border-radius: 8px !important;
-  outline: none !important;
-  background: var(--th-attitude-control) !important;
-  color: inherit !important;
-  font: inherit !important;
+  padding-block: 0 !important;
   font-size: 13px !important;
-}
-#${ROOT_ID} .th-attitude-input:focus {
-  border-color: color-mix(in srgb, var(--th-attitude-ink) 58%, var(--th-attitude-border) 42%) !important;
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--th-attitude-ink) 15%, transparent) !important;
 }
 #${ROOT_ID} .th-user-status-list {
   display: grid !important;
@@ -635,6 +628,7 @@
   font-weight: 650 !important;
   opacity: .88 !important;
 }
+/* 滑块外观由当前美化接管；这里只保留滑杆布局和交互区域。 */
 #${ROOT_ID} .th-user-status-range {
   --th-status-progress: 50%;
   appearance: none !important;
@@ -655,35 +649,19 @@
   touch-action: pan-y !important;
   -webkit-tap-highlight-color: transparent !important;
 }
-#${ROOT_ID} .th-user-status-range::-webkit-slider-thumb {
-  appearance: none !important;
-  -webkit-appearance: none !important;
-  width: 15px !important;
-  height: 15px !important;
-  border: 1px solid color-mix(in srgb, var(--th-attitude-surface) 70%, black 30%) !important;
-  border-radius: 999px !important;
-  background: var(--th-attitude-ink) !important;
-  box-shadow: 0 1px 4px rgba(0,0,0,.15) !important;
-}
-#${ROOT_ID} .th-user-status-range::-moz-range-thumb {
-  width: 15px !important;
-  height: 15px !important;
-  border: 1px solid color-mix(in srgb, var(--th-attitude-surface) 70%, black 30%) !important;
-  border-radius: 999px !important;
-  background: var(--th-attitude-ink) !important;
-  box-shadow: 0 1px 4px rgba(0,0,0,.15) !important;
-}
-#${ROOT_ID} .th-user-status-number {
+#${ROOT_ID} .th-user-status-number,
+#${ROOT_ID} .th-user-status-number:focus {
   appearance: textfield !important;
   -moz-appearance: textfield !important;
   width: 38px !important;
   height: 28px !important;
   margin: 0 !important;
   padding: 0 3px !important;
-  border: 1px solid transparent !important;
-  border-radius: 7px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
   outline: none !important;
-  background: var(--th-attitude-control) !important;
+  background: transparent !important;
+  box-shadow: none !important;
   color: inherit !important;
   font: inherit !important;
   font-size: 12px !important;
@@ -694,11 +672,6 @@
 #${ROOT_ID} .th-user-status-number::-webkit-inner-spin-button {
   margin: 0 !important;
   -webkit-appearance: none !important;
-}
-#${ROOT_ID} .th-user-status-number:focus {
-  border-color: color-mix(in srgb, var(--th-attitude-ink) 58%, var(--th-attitude-border) 42%) !important;
-  background: var(--th-attitude-control-active) !important;
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--th-attitude-ink) 15%, transparent) !important;
 }
 @keyframes th-attitude-panel-in {
   from { opacity: 0; transform: translateY(var(--th-orb-enter-y, -5px)) scale(.97); }
@@ -748,7 +721,9 @@
     doc.body.appendChild(nextOrb);
     orb = nextOrb;
     restorePosition(orb, ORB_POSITION_STORAGE_KEY);
-    orbCleanup = bindDrag(orb, orb, ORB_POSITION_STORAGE_KEY, () => setPanelOpen(root?.dataset.open !== 'true'));
+    const stopOrbPress = bindHostPressBoundary(orb);
+    const stopOrbDrag = bindDrag(orb, orb, ORB_POSITION_STORAGE_KEY, () => setPanelOpen(root?.dataset.open !== 'true'));
+    orbCleanup = () => { stopOrbDrag(); stopOrbPress(); };
   }
 
   function removeOrb() {
@@ -775,10 +750,15 @@
 
   function setDisplayMode(mode) {
     if (destroyed || !mounted || (mode !== 'orb' && mode !== 'shortcut')) return;
+    const modeChanged = displayMode !== mode;
+    cancelActiveDrag?.();
     flushSave();
     closeTargetMenu();
     cancelPanelClose();
     hidePanelNow();
+    if (modeChanged) {
+      try { win.localStorage.removeItem(POSITION_STORAGE_KEY); } catch (_error) {}
+    }
     displayMode = mode;
     applyDisplayMode();
     // 内容共用，展示分开：贴球展开面板 / 独立可拖窗口。
@@ -793,7 +773,7 @@
   function makeField(labelText, type, className) {
     const label = makeElement('label', 'th-attitude-field');
     const caption = makeElement('span', 'th-attitude-label', labelText);
-    const input = makeElement('input', 'th-attitude-input ' + className);
+    const input = makeElement('input', 'th-attitude-input text_pole ' + className);
     input.type = type;
     input.autocomplete = 'off';
     input.setAttribute('aria-label', labelText);
@@ -864,12 +844,12 @@
     const tabs = makeElement('div', 'th-attitude-tabs');
     tabs.setAttribute('role', 'tablist');
     tabs.setAttribute('aria-label', '切换态度与状态');
-    const nextAttitudeTab = makeElement('button', 'th-attitude-tab', '态度');
+    const nextAttitudeTab = makeElement('button', 'menu_button th-attitude-tab', '态度');
     nextAttitudeTab.type = 'button';
     nextAttitudeTab.dataset.view = 'attitude';
     nextAttitudeTab.setAttribute('role', 'tab');
     nextAttitudeTab.setAttribute('aria-selected', 'true');
-    const nextUserStatusTab = makeElement('button', 'th-attitude-tab', '状态');
+    const nextUserStatusTab = makeElement('button', 'menu_button th-attitude-tab', '状态');
     nextUserStatusTab.type = 'button';
     nextUserStatusTab.dataset.view = 'status';
     nextUserStatusTab.setAttribute('role', 'tab');
@@ -879,7 +859,7 @@
     nextStatus.dataset.kind = 'saved';
     nextStatus.setAttribute('role', 'status');
     nextStatus.setAttribute('aria-live', 'polite');
-    const nextCloseButton = makeElement('button', 'th-attitude-close', '×');
+    const nextCloseButton = makeElement('button', 'menu_button th-attitude-close', '×');
     nextCloseButton.type = 'button';
     nextCloseButton.title = '保存并关闭窗口';
     nextCloseButton.setAttribute('aria-label', '保存并关闭窗口');
@@ -896,25 +876,29 @@
 
     const targetWrap = makeElement('div', 'th-attitude-target-wrap');
     const nextTargetToolbar = makeElement('div', 'th-attitude-target-toolbar');
-    const nextTargetSelect = makeElement('select', 'th-attitude-target-select');
+    const selectWrap = makeElement('div', 'th-attitude-select-wrap');
+    const nextTargetSelect = makeElement('select', 'menu_button th-attitude-target-select');
     nextTargetSelect.setAttribute('aria-label', '当前态度对象');
+    const selectArrow = makeElement('span', 'th-attitude-select-arrow', '▾');
+    selectArrow.setAttribute('aria-hidden', 'true');
+    selectWrap.append(nextTargetSelect, selectArrow);
 
-    const nextActiveToggle = makeElement('button', 'th-attitude-mini-button th-attitude-active-toggle', 'AI读取');
+    const nextActiveToggle = makeElement('button', 'menu_button th-attitude-mini-button th-attitude-active-toggle', 'AI读取');
     nextActiveToggle.type = 'button';
     nextActiveToggle.dataset.active = 'true';
     nextActiveToggle.setAttribute('aria-pressed', 'true');
     nextActiveToggle.setAttribute('aria-label', '切换是否让AI读取当前角色的态度记录');
 
-    const nextAddTargetButton = makeElement('button', 'th-attitude-mini-button th-attitude-add', '＋');
+    const nextAddTargetButton = makeElement('button', 'menu_button th-attitude-mini-button th-attitude-add', '＋');
     nextAddTargetButton.type = 'button';
     nextAddTargetButton.setAttribute('aria-label', '添加角色');
 
-    const nextMenuButton = makeElement('button', 'th-attitude-mini-button th-attitude-menu-button', '⋯');
+    const nextMenuButton = makeElement('button', 'menu_button th-attitude-mini-button th-attitude-menu-button', '⋯');
     nextMenuButton.type = 'button';
     nextMenuButton.setAttribute('aria-label', '管理当前角色');
     nextMenuButton.setAttribute('aria-expanded', 'false');
 
-    nextTargetToolbar.append(nextTargetSelect, nextActiveToggle, nextAddTargetButton, nextMenuButton);
+    nextTargetToolbar.append(selectWrap, nextActiveToggle, nextAddTargetButton, nextMenuButton);
 
     const nextTargetEditor = makeElement('div', 'th-attitude-target-editor');
     nextTargetEditor.hidden = true;
@@ -922,19 +906,19 @@
     nextTargetNameInput.type = 'text';
     nextTargetNameInput.autocomplete = 'off';
     nextTargetNameInput.setAttribute('aria-label', '角色名称');
-    const nextConfirmTargetButton = makeElement('button', 'th-attitude-mini-button th-attitude-editor-confirm', '✓');
+    const nextConfirmTargetButton = makeElement('button', 'menu_button th-attitude-mini-button th-attitude-editor-confirm', '✓');
     nextConfirmTargetButton.type = 'button';
     nextConfirmTargetButton.setAttribute('aria-label', '确认');
-    const nextCancelTargetButton = makeElement('button', 'th-attitude-mini-button th-attitude-editor-cancel', '×');
+    const nextCancelTargetButton = makeElement('button', 'menu_button th-attitude-mini-button th-attitude-editor-cancel', '×');
     nextCancelTargetButton.type = 'button';
     nextCancelTargetButton.setAttribute('aria-label', '取消');
     nextTargetEditor.append(nextTargetNameInput, nextConfirmTargetButton, nextCancelTargetButton);
 
     const nextTargetMenu = makeElement('div', 'th-attitude-target-menu');
     nextTargetMenu.hidden = true;
-    const nextRenameTargetButton = makeElement('button', '', '重命名当前角色');
+    const nextRenameTargetButton = makeElement('button', 'menu_button', '重命名当前角色');
     nextRenameTargetButton.type = 'button';
-    const nextRemoveTargetButton = makeElement('button', '', '移除当前角色');
+    const nextRemoveTargetButton = makeElement('button', 'menu_button', '移除当前角色');
     nextRemoveTargetButton.type = 'button';
     nextTargetMenu.append(nextRenameTargetButton, nextRemoveTargetButton);
     targetWrap.append(nextTargetToolbar, nextTargetEditor, nextTargetMenu);
@@ -993,19 +977,28 @@
     };
   }
 
-  function updateWindowBounds() {
-    if (!root) return;
-    const viewport = getViewportSize();
-    const margin = VIEWPORT_MARGIN_PX * 2;
-    root.style.setProperty('--th-window-max-width', Math.max(1, viewport.width - margin) + 'px');
-    root.style.setProperty('--th-window-max-height', Math.max(1, viewport.height - margin) + 'px');
+  function setStyleValue(element, property, value, priority = '') {
+    if (element.style.getPropertyValue(property) !== value || element.style.getPropertyPriority(property) !== priority) {
+      element.style.setProperty(property, value, priority);
+    }
   }
 
-  function getRootBox(element = root) {
-    let rect = null;
-    try { rect = element?.getBoundingClientRect?.() || null; } catch (_error) {}
-    const viewport = getViewportSize();
+  function updateWindowBounds(viewport = getViewportSize()) {
+    if (!root) return;
+    const margin = VIEWPORT_MARGIN_PX * 2;
+    setStyleValue(root, '--th-window-max-width', Math.max(1, viewport.width - margin) + 'px');
+    // 贴球面板的高度由可用空间决定，拖动时不先重置为全屏高度再改回来。
+    if (displayMode !== 'orb' || !orb || root.hidden) {
+      setStyleValue(root, '--th-window-max-height', Math.max(1, viewport.height - margin) + 'px');
+    }
+  }
+
+  function getRootBox(element = root, viewport = getViewportSize()) {
     const isOrb = element === orb;
+    let rect = null;
+    if (!isOrb) {
+      try { rect = element?.getBoundingClientRect?.() || null; } catch (_error) {}
+    }
     // 按压/拖动时球自身会缩放；定位使用未缩放的布局尺寸，避免拖动跳位。
     const width = isOrb ? ORB_SIZE_PX : Number(rect?.width) > 0 ? Number(rect.width) : Math.min(viewport.width - 16, viewport.width <= 520 ? 246 : 252);
     const height = isOrb ? ORB_SIZE_PX : Number(rect?.height) > 0 ? Number(rect.height) : Math.min(currentView === 'status' ? 130 : 210, viewport.height - 16);
@@ -1019,9 +1012,7 @@
     return { left, top, width, height };
   }
 
-  function clampPosition(left, top, element = root) {
-    const viewport = getViewportSize();
-    const box = getRootBox(element);
+  function clampPosition(left, top, element = root, viewport = getViewportSize(), box = getRootBox(element, viewport)) {
     const minLeft = viewport.left + VIEWPORT_MARGIN_PX;
     const minTop = viewport.top + VIEWPORT_MARGIN_PX;
     return {
@@ -1032,17 +1023,19 @@
 
   function applyPosition(left, top, element = root) {
     if (!element) return;
-    element.style.setProperty('left', left + 'px', 'important');
-    element.style.setProperty('top', top + 'px', 'important');
-    element.style.setProperty('right', 'auto', 'important');
-    element.style.setProperty('bottom', 'auto', 'important');
+    setStyleValue(element, 'left', left + 'px', 'important');
+    setStyleValue(element, 'top', top + 'px', 'important');
+    setStyleValue(element, 'right', 'auto', 'important');
+    setStyleValue(element, 'bottom', 'auto', 'important');
     if (element === orb) positionOrbPanel();
   }
 
   function savePosition(element = root, key = POSITION_STORAGE_KEY) {
     if (!element) return;
-    const box = getRootBox(element);
-    const next = clampPosition(box.left, box.top, element);
+    const viewport = getViewportSize();
+    const box = getRootBox(element, viewport);
+    const freeWindow = element === root && displayMode === 'shortcut';
+    const next = freeWindow ? { left: box.left, top: box.top } : clampPosition(box.left, box.top, element, viewport, box);
     applyPosition(next.left, next.top, element);
     try {
       win.localStorage.setItem(key, JSON.stringify(next));
@@ -1056,57 +1049,55 @@
       saved = JSON.parse(win.localStorage.getItem(key) || 'null');
     } catch (_error) {}
     const viewport = getViewportSize();
-    const box = getRootBox(element);
+    const box = getRootBox(element, viewport);
     const isOrb = element === orb;
     const valid = saved && Number.isFinite(saved.left) && Number.isFinite(saved.top);
-    const next = clampPosition(
-      valid ? saved.left : viewport.left + (isOrb ? viewport.width - box.width - 11 : (viewport.width - box.width) / 2),
-      valid ? saved.top : viewport.top + (isOrb ? 132 : (viewport.height - box.height) / 2),
-      element,
-    );
+    const desiredLeft = valid ? saved.left : viewport.left + (isOrb ? viewport.width - box.width - 11 : (viewport.width - box.width) / 2);
+    const desiredTop = valid ? saved.top : viewport.top + (isOrb ? 132 : (viewport.height - box.height) / 2);
+    const freeWindow = element === root && displayMode === 'shortcut' && valid;
+    const next = freeWindow ? { left: desiredLeft, top: desiredTop }
+      : clampPosition(desiredLeft, desiredTop, element, viewport, box);
     applyPosition(next.left, next.top, element);
   }
 
   function positionOrbPanel() {
     if (destroyed || displayMode !== 'orb' || !orb || !root || root.hidden) return;
-    updateWindowBounds();
     const viewport = getViewportSize();
-    const ball = getRootBox(orb);
+    updateWindowBounds(viewport);
+    const ball = getRootBox(orb, viewport);
     const minTop = viewport.top + VIEWPORT_MARGIN_PX;
     const maxBottom = viewport.top + viewport.height - VIEWPORT_MARGIN_PX;
     const below = Math.max(0, maxBottom - ball.top - ball.height - 10);
     const above = Math.max(0, ball.top - 10 - minTop);
     const desiredHeight = Number(panel.scrollHeight) + 2 || getRootBox().height;
     const opensBelow = below >= desiredHeight || below >= above;
-    root.style.setProperty('--th-window-max-height', Math.max(1, opensBelow ? below : above) + 'px');
-    const box = getRootBox();
+    setStyleValue(root, '--th-window-max-height', 'none');
+    const box = getRootBox(root, viewport);
     const desiredLeft = ball.left + ball.width - box.width;
-    const next = clampPosition(desiredLeft, opensBelow ? ball.top + ball.height + 10 : ball.top - box.height - 10);
-    root.dataset.side = opensBelow ? 'below' : 'above';
-    root.style.setProperty('--th-orb-origin', (next.left > desiredLeft ? 'left ' : 'right ') + (opensBelow ? 'top' : 'bottom'));
-    root.style.setProperty('--th-orb-enter-y', opensBelow ? '-5px' : '5px');
+    const next = { left: desiredLeft, top: opensBelow ? ball.top + ball.height + 10 : ball.top - box.height - 10 };
+    const side = opensBelow ? 'below' : 'above';
+    if (root.dataset.side !== side) root.dataset.side = side;
+    setStyleValue(root, '--th-orb-origin', (next.left > desiredLeft ? 'left ' : 'right ') + (opensBelow ? 'top' : 'bottom'));
+    setStyleValue(root, '--th-orb-enter-y', opensBelow ? '-5px' : '5px');
     applyPosition(next.left, next.top);
   }
 
   function keepPositionInViewport() {
     if (destroyed) return;
-    updateWindowBounds();
+    cancelActiveDrag?.();
+    const viewport = getViewportSize();
+    updateWindowBounds(viewport);
     if (orb) {
-      const box = getRootBox(orb);
-      const next = clampPosition(box.left, box.top, orb);
+      const box = getRootBox(orb, viewport);
+      const next = clampPosition(box.left, box.top, orb, viewport, box);
       applyPosition(next.left, next.top, orb);
-    }
-    if (root && !root.hidden && displayMode === 'shortcut') {
-      const box = getRootBox();
-      const next = clampPosition(box.left, box.top);
-      applyPosition(next.left, next.top);
     }
   }
 
   function setStatus(text, kind = 'saved') {
     if (!status || destroyed) return;
-    status.textContent = text;
-    status.dataset.kind = kind;
+    if (status.textContent !== text) status.textContent = text;
+    if (status.dataset.kind !== kind) status.dataset.kind = kind;
   }
 
   function promptSafeName(value) {
@@ -1238,8 +1229,9 @@
 
   function setRangeProgress(range, value) {
     if (!range) return;
-    range.value = String(value);
-    range.style.setProperty('--th-status-progress', value + '%');
+    const text = String(value);
+    if (range.value !== text) range.value = text;
+    setStyleValue(range, '--th-status-progress', value + '%');
   }
 
   function readStatusNumber(numberInput, range, key, normalizeInvalid = false) {
@@ -1258,16 +1250,28 @@
 
   function renderTargetOptions() {
     if (!targetSelect) return;
-    targetSelect.replaceChildren();
-    for (const id of state.order) {
+    const ids = state.order.filter(id => Boolean(state.entries[id]));
+    const options = Array.from(targetSelect.children);
+    const unchanged = options.length === ids.length && options.every((option, index) => (
+      option.value === ids[index] && option.textContent === state.entries[ids[index]].name
+    ));
+    if (unchanged) {
+      for (const option of options) {
+        const selected = option.value === state.selectedId;
+        if (option.selected !== selected) option.selected = selected;
+      }
+      return;
+    }
+    const fragment = doc.createDocumentFragment();
+    for (const id of ids) {
       const entry = state.entries[id];
-      if (!entry) continue;
       const option = doc.createElement('option');
       option.value = id;
       option.textContent = entry.name;
       option.selected = id === state.selectedId;
-      targetSelect.appendChild(option);
+      fragment.appendChild(option);
     }
+    targetSelect.replaceChildren(fragment);
   }
 
   function renderState() {
@@ -1281,6 +1285,7 @@
     impressionInput.value = entry.impression;
     remarkInput.value = entry.remark;
     activeToggle.dataset.active = String(entry.active);
+    activeToggle.classList.toggle('active', entry.active);
     activeToggle.setAttribute('aria-pressed', String(entry.active));
     activeToggle.textContent = entry.active ? 'AI读取' : '仅保存';
     activeToggle.title = entry.active
@@ -1304,6 +1309,8 @@
     if (userStatusView) userStatusView.hidden = showAttitude;
     if (attitudeTab) attitudeTab.setAttribute('aria-selected', String(showAttitude));
     if (userStatusTab) userStatusTab.setAttribute('aria-selected', String(!showAttitude));
+    attitudeTab?.classList.toggle('active', showAttitude);
+    userStatusTab?.classList.toggle('active', !showAttitude);
     keepPositionInViewport();
   }
 
@@ -1391,7 +1398,8 @@
     const force = options.force === true;
     const silent = options.silent === true;
     const updatePrompt = options.updatePrompt !== false;
-    const nextSignature = signature();
+    const snapshot = serializeState();
+    const nextSignature = signature(snapshot);
     const update = getApi('updateVariablesWith');
 
     try {
@@ -1400,7 +1408,6 @@
           if (!silent) setStatus('保存接口不可用', 'error');
           return false;
         }
-        const snapshot = serializeState();
         // 只替换本脚本的完整快照，保留聊天中的其他变量。
         update.call(window, variables => {
           variables[STORAGE_KEY] = snapshot;
@@ -1574,6 +1581,7 @@
 
   function setPanelOpen(open) {
     if (!root || !panel || destroyed) return;
+    if (!open) cancelActiveDrag?.();
     openRequested = open;
     const wasOpen = root.dataset.open === 'true';
     if (!open && root.dataset.closing === 'true') return;
@@ -1620,7 +1628,76 @@
   // 悬浮球与面板共用一套拖动；只在拖动期间监听主页面指针事件。
   function bindDrag(handle, element, positionKey, onTap = null) {
     let drag = null;
+    let dragFrame = null;
     let suppressClickUntil = 0;
+
+    function captureLayer(target, box) {
+      return { target, box, styles: ['translate', 'will-change'].map(property => (
+        [property, target.style.getPropertyValue(property), target.style.getPropertyPriority(property)]
+      )) };
+    }
+
+    function restoreLayer(layer) {
+      if (!layer) return;
+      for (const [property, value, priority] of layer.styles) {
+        if (value) setStyleValue(layer.target, property, value, priority);
+        else layer.target.style.removeProperty(property);
+      }
+    }
+
+    function moveLayer(layer, left, top) {
+      setStyleValue(layer.target, 'will-change', 'translate', 'important');
+      setStyleValue(layer.target, 'translate', (left - layer.box.left) + 'px ' + (top - layer.box.top) + 'px', 'important');
+    }
+
+    function prepareLayers() {
+      drag.layer = captureLayer(element, drag.box);
+      if (element !== orb || !root || root.hidden) return;
+      const box = getRootBox(root, drag.viewport);
+      let naturalHeight = box.height;
+      const desiredHeight = Number(panel.scrollHeight) + 2 || naturalHeight;
+      if (desiredHeight > naturalHeight + 1) {
+        // 被屏幕边缘压缩时，只在手势开始测一次自然高度，避免逐帧测量。
+        const oldHeight = root.style.getPropertyValue('--th-window-max-height');
+        setStyleValue(root, '--th-window-max-height', 'none');
+        naturalHeight = getRootBox(root, drag.viewport).height;
+        if (oldHeight) setStyleValue(root, '--th-window-max-height', oldHeight);
+        else root.style.removeProperty('--th-window-max-height');
+      }
+      drag.attached = { layer: captureLayer(root, box), naturalHeight, desiredHeight };
+    }
+
+    function moveAttachedPanel(ball) {
+      const attached = drag.attached;
+      if (!attached) return;
+      const viewport = drag.viewport;
+      const below = Math.max(0, viewport.top + viewport.height - VIEWPORT_MARGIN_PX - ball.top - ORB_SIZE_PX - 10);
+      const above = Math.max(0, ball.top - 10 - viewport.top - VIEWPORT_MARGIN_PX);
+      const opensBelow = below >= attached.desiredHeight || below >= above;
+      const box = { width: attached.layer.box.width, height: Math.max(22, attached.naturalHeight) };
+      const desiredLeft = ball.left + ORB_SIZE_PX - box.width;
+      const next = { left: desiredLeft, top: opensBelow ? ball.top + ORB_SIZE_PX + 10 : ball.top - box.height - 10 };
+      setStyleValue(root, '--th-window-max-height', 'none');
+      const side = opensBelow ? 'below' : 'above';
+      if (root.dataset.side !== side) root.dataset.side = side;
+      setStyleValue(root, '--th-orb-origin', (next.left > desiredLeft ? 'left ' : 'right ') + (opensBelow ? 'top' : 'bottom'));
+      setStyleValue(root, '--th-orb-enter-y', opensBelow ? '-5px' : '5px');
+      moveLayer(attached.layer, next.left, next.top);
+    }
+
+    function renderDrag() {
+      dragFrame = null;
+      if (!drag || !drag.moved || destroyed) return;
+      const freeWindow = element === root && displayMode === 'shortcut';
+      const next = freeWindow ? { left: drag.nextLeft, top: drag.nextTop }
+        : clampPosition(drag.nextLeft, drag.nextTop, element, drag.viewport, drag.box);
+      drag.lastPosition = next;
+      if (drag.useLayers) {
+        if (!drag.layer) prepareLayers();
+        moveLayer(drag.layer, next.left, next.top);
+        moveAttachedPanel(next);
+      } else applyPosition(next.left, next.top, element);
+    }
 
     function startDrag(event) {
       if (destroyed || !element.isConnected || element.hidden || drag || event.isPrimary === false || event.button !== 0) return;
@@ -1630,8 +1707,11 @@
       const y = Number(event.clientY);
       if (!Number.isFinite(x) || !Number.isFinite(y)) return;
       suppressClickUntil = 0;
-      const box = getRootBox(element);
-      drag = { id: event.pointerId, x, y, left: box.left, top: box.top, moved: false };
+      const viewport = getViewportSize();
+      const box = getRootBox(element, viewport);
+      drag = { id: event.pointerId, x, y, left: box.left, top: box.top, nextLeft: box.left, nextTop: box.top,
+        moved: false, viewport, box, layer: null, attached: null, useLayers: win.CSS?.supports?.('translate', '1px') === true };
+      cancelActiveDrag = endDrag;
       element.dataset.dragging = 'true';
       try { handle.setPointerCapture(event.pointerId); } catch (_error) {}
       doc.addEventListener('pointermove', moveDrag, { passive: false, capture: true });
@@ -1648,8 +1728,10 @@
       if (!Number.isFinite(dx) || !Number.isFinite(dy)) return;
       if (Math.abs(dx) > DRAG_THRESHOLD_PX || Math.abs(dy) > DRAG_THRESHOLD_PX) drag.moved = true;
       if (drag.moved) {
-        const next = clampPosition(drag.left + dx, drag.top + dy, element);
-        applyPosition(next.left, next.top, element);
+        drag.nextLeft = drag.left + dx;
+        drag.nextTop = drag.top + dy;
+        // 使用主页面的帧回调；隐藏的脚本 iframe 不负责渲染时机。
+        if (dragFrame === null) dragFrame = win.requestAnimationFrame(renderDrag);
       }
       event.preventDefault();
       event.stopPropagation();
@@ -1657,14 +1739,24 @@
 
     function endDrag(event) {
       if (!drag || (event && event.pointerId !== drag.id)) return;
+      if (dragFrame !== null) {
+        win.cancelAnimationFrame(dragFrame);
+        renderDrag();
+      }
       const finished = drag;
       drag = null;
+      if (cancelActiveDrag === endDrag) cancelActiveDrag = null;
+      restoreLayer(finished.layer);
+      restoreLayer(finished.attached?.layer);
       doc.removeEventListener('pointermove', moveDrag, true);
       doc.removeEventListener('pointerup', endDrag, true);
       doc.removeEventListener('pointercancel', endDrag, true);
       try { handle.releasePointerCapture?.(finished.id); } catch (_error) {}
       element.dataset.dragging = 'false';
-      if (finished.moved && !destroyed) savePosition(element, positionKey);
+      if (finished.moved && !destroyed) {
+        if (finished.layer) applyPosition(finished.lastPosition.left, finished.lastPosition.top, element);
+        savePosition(element, positionKey);
+      }
       if (onTap && (finished.moved || event?.type !== 'pointerup')) {
         suppressClickUntil = Date.now() + 500;
       }
@@ -1688,8 +1780,20 @@
     };
   }
 
+  // 酒馆在 html 的 touchstart/mousedown 上收起外部工具栏；只隔离本界面的按下事件。
+  function bindHostPressBoundary(element) {
+    const stopOutsidePress = event => event.stopPropagation();
+    element.addEventListener('mousedown', stopOutsidePress);
+    element.addEventListener('touchstart', stopOutsidePress, { passive: true });
+    return () => {
+      element.removeEventListener('mousedown', stopOutsidePress);
+      element.removeEventListener('touchstart', stopOutsidePress);
+    };
+  }
+
   function bindUi() {
     try { uiCleanup?.(); } catch (_error) {}
+    const stopPanelPress = bindHostPressBoundary(root);
     const stopPanelDrag = bindDrag(dragHandle, root, POSITION_STORAGE_KEY);
 
     function handleClose(event) {
@@ -1887,6 +1991,7 @@
 
     uiCleanup = () => {
       stopPanelDrag();
+      stopPanelPress();
       removeOrb();
       closeButton?.removeEventListener('click', handleClose);
       win.removeEventListener?.('resize', keepPositionInViewport);
